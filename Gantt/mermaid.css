@@ -1,0 +1,79 @@
+.mermaid .sectionTitle {
+	font-weight: 700;
+}
+
+.mermaid .milestoneText {
+	font-style: normal !important;
+}
+
+.mermaid .section0, .section2 {
+	fill: gray !important;
+	opacity: 0.05 !important;
+}
+
+.mermaid .grid .tick line {
+	stroke: gray !important;
+	stroke-dasharray: 3;
+	opacity: 1 !important;
+}
+
+.mermaid .done0 {
+	stroke: none !important;
+	fill: #4DAB9A !important;
+	opacity: 0.4 !important;
+}
+
+.mermaid #task1.done0,  #task6.done0 {
+	stroke: #4DAB9A !important;
+	fill: white !important;
+	stroke-width: 1.5 !important;
+	opacity: 1 !important;
+}
+
+.mermaid .crit1 {
+	stroke: none !important;
+}
+
+.mermaid #task15.doneCrit1 {
+	stroke-width: 1.5 !important;
+	stroke: none !important;
+	fill: #d42 !important;
+	opacity: 0.2 !important;
+}
+
+.mermaid #task16-text.milestoneText {
+	font-weight: 600 !important;
+}
+
+.mermaid .task2 {
+	fill: white !important;
+	stroke: blue !important;
+	stroke-width: 1.2 !important;
+	opacity: 0.7 !important;
+}
+
+
+.mermaid .taskText2 {
+	fill: #0F0F0F !important;
+}
+
+.mermaid .activeCrit2 {
+	fill: white !important;
+	stroke-width: 1.4 !important;
+	stroke: blue !important;
+	opacity: 0.7 !important;
+}
+
+
+
+stroke-dasharray: 5;
+
+
+/* MERMAID */
+/* center graphics in page and font-size */
+/*.mermaid {
+  display: flex !important;
+  justify-content: center;
+  font-size: 12px;
+}
+
