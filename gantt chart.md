@@ -3,7 +3,7 @@ showDone: false
 ---
 ```dataviewjs
 
-function textParser(taskText, noteCreationDate) {
+function textParser(taskText, noteCreationDate, parentEndDate) {
     const emojis = ["📅", "⏳", "🛫", "➕", "✅", "⏫", "🔼", "🔽"];
 
     // Helper function to find the index of the next emoji
@@ -16,25 +16,32 @@ function textParser(taskText, noteCreationDate) {
 	    return Math.min(...indices);
 	}
 
+	let addText
+	let scheduledText
+	let startText
     // Helper function to extract the date after a given emoji
 	    function extractDate(emoji) {
 	    const start = taskText.indexOf(emoji);
 	    if (start < 0) {
 	        return "";
 	    }
-	    const match = taskText.slice(start + 1).match(/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))(\s|$)/);
-	    return match ? match[0] : "";
+	    let date
+	    
+	    if (match = taskText.slice(start + 1).match(/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))(\s|$)/)){
+		    return match[0]
+	    }
+	    // Look for relative ranges. Expects a number followed by text where the text is passed to moment and can be one of the keys or shorthand mentioned here https://momentjs.com/docs/#/manipulating/add/
+	    if (match = taskText.slice(start +1).match(/([0-9]+) ?([a-zA-Z]+)(\s|$)/)) {
+		    return moment(startText||scheduledText||parentEndDate||addText).add(match[1],match[2]).format('YYYY-MM-DD')
+	    }
+	    return "";
 	}
 
     const DueText = extractDate("📅");
-    const scheduledText = extractDate("⏳");
-    const startText = extractDate("🛫");
-    let addText = extractDate("➕");
+    scheduledText = extractDate("⏳");
+    startText = extractDate("🛫");
+    addText = extractDate("➕");
     const doneText = extractDate("✅");
-
-    if (addText === "") {
-        addText = noteCreationDate;
-    }
 
     let h = taskText.indexOf("⏫");
     let m = taskText.indexOf("🔼");
@@ -81,23 +88,29 @@ function loopGantt (pageArray, showDone){
     let queryGlobal = "";
     let today = new Date().toISOString().slice(0, 10);
 
+	// Loop through the pages looking for tasks
     let i;
     for (i = 0; i < pageArray.length; i+=1) {
         let taskQuery = "";
         if (!pageArray[i].file.tasks || pageArray[i].file.tasks.length === 0) { 
             continue;
         }
+		// Add a section for the page if tasks are found
+        queryGlobal += "section "+pageArray[i].file.name+"\n\n"
         let taskArray = pageArray[i].file.tasks;
         let taskObjs = [];
-        let noteCreationDate = pageArray[i].created.includes(" ") ? pageArray[i].created.split(" ")[0] : pageArray[i].created;
+        //let noteCreationDate = pageArray[i].created.includes(" ") ? pageArray[i].created.split(" ")[0] : pageArray[i].created;
+        let noteCreationDate = moment(pageArray[i].file.ctime).format('YYYY-MM-DD')
+        var parentEndDate = {};
+        // Loop through the tasks
         let j;
         for (j = 0; j < taskArray.length; j+=1){
-            taskObjs[j] = textParser(taskArray[j].text, noteCreationDate);
+            taskObjs[j] = textParser(taskArray[j].text, noteCreationDate, parentEndDate[taskArray[j].parent]);
             let theTask = taskObjs[j];
             if (theTask.name === "") continue; // Skip if task name is empty
             // Skip done tasks if showDone is false
             if (!showDone && theTask.done) continue;
-            let startDate = theTask.start || theTask.scheduled || theTask.add || noteCreationDate || today;
+            let startDate = theTask.start || theTask.scheduled || theTask.add || parentEndDate[taskArray[j].parent] || noteCreationDate || today;
             let endDate = theTask.done || theTask.due || theTask.scheduled;
             if (!endDate) {
                 if (startDate >= today) {  // If start date is in the future
@@ -108,6 +121,7 @@ function loopGantt (pageArray, showDone){
                     endDate = today;
                 }
             }
+            parentEndDate[taskArray[j].line]=endDate;
             if (theTask.done){
                 taskQuery += theTask.name + `    :done, ` + startDate + `, ` + endDate + `\n\n`;
             } else if (theTask.due){
@@ -132,32 +146,36 @@ function loopGantt (pageArray, showDone){
 }
 
 const Mermaid = `gantt
-        title Choses à faire
+        title Project Tasks
         dateFormat  YYYY-MM-DD
-        axisFormat %b\n %d
+        axisFormat %b %e
         `;
     let pages = dv.pages('<% await tp.system.prompt("Scope") %>');
-    let filteredPages = pages.map(page => {
-        let tasks = page.file.tasks.filter(t => t.text.includes("#task"));
-        return {...page, file: {...page.file, tasks: tasks}};
-    });
+    //let filteredPages = pages.map(page => {
+    //    let tasks = page.file.tasks.filter(t => t.text.includes("#task"));
+    //    return {...page, file: {...page.file, tasks: tasks}};
+    //});
+    let filteredPages = pages;
     let showDone = dv.current().showDone;
     let ganttOutput = loopGantt(filteredPages, showDone);
     //
 
 	//add dummy task so that today's date is always shown:
     let today = new Date().toISOString().slice(0, 10); 
-    ganttOutput += "🧍🏻‍♂️ :active, " + today + ", " + today + "\n\n";
+    ganttOutput += ". :active, " + today + ", " + today + "\n\n";
     
     dv.paragraph("```mermaid\n" + Mermaid + ganttOutput + "\n```");
 
 	if (dv.current().showDone) { 
-		dv.paragraph(`Montrer les tâches terminées \`INPUT[toggle:showDone]\``); 
+		dv.paragraph(`Show completed tasks \`INPUT[toggle:showDone]\``); 
 	} else { 
-		dv.paragraph(`Montrer les tâches terminées \`INPUT[toggle:showDone]\``); 
+		dv.paragraph(`Show completed tasks \`INPUT[toggle:showDone]\``); 
 	}
+	
+	// Generate a link to view the resulting chart
+    dv.span("[View this chart in a browser](https://mermaid.ink/img/"+btoa(Mermaid+ganttOutput)+")")
     
     // Print the ganttOutput to inspect it
     //dv.paragraph(ganttOutput);
-
+    //dv.paragraph("```\n" + Mermaid + ganttOutput + "\n```");
 ```
