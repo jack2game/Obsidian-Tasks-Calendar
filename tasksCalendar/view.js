@@ -66,7 +66,7 @@ if (pages == "") {
   var tasks = dv.pages().file.tasks;
 } else if (typeof pages === "string" && pages.startsWith("dv.pages")) {
   var tasks = eval(pages);
-} else if (typeof pages && pages.every((p) => p.task)) {
+} else if (typeof pages === typeof dv.pages().file.tasks && pages.every((p) => p.task)) {
   var tasks = pages;
 } else {
   var tasks = dv.pages(pages).file.tasks;
@@ -76,12 +76,15 @@ if (pages == "") {
 var done,
   doneWithoutCompletionDate,
   due,
+  dueComplex,
   recurrence,
   overdue,
   start,
   scheduled,
   process,
   progress,
+  toSend,
+  waiting,
   cancelled,
   dailyNote,
   dailyNoteRegEx;
@@ -140,13 +143,16 @@ if (css) {
   rootNode.append(style);
 }
 var taskDoneIcon = "✅";
-var taskDueIcon = "📅";
+var taskDueIcon = "📗";
+var taskDueComplexIcon = "📚";
 var taskScheduledIcon = "⏳";
 var taskRecurrenceIcon = "🔁";
 var taskOverdueIcon = "⚠️";
 var taskProcessIcon = "⏺️";
-var taskProgressIcon = "⏯️";
-var taskCancelledIcon = "🚫";
+var taskProgressIcon = "💡";
+var taskToSendIcon = "🔖";
+var taskWaitingIcon = "📆";
+var taskCancelledIcon = "❌";
 var taskStartIcon = "🛫";
 var taskDailyNoteIcon = "📄";
 
@@ -320,6 +326,18 @@ function getTasks(date) {
         moment(t.due.toString()).isSame(date)
     )
     .sort((t) => t.due);
+  dueComplex = tasks
+    .filter(
+      (t) =>
+        !t.completed &&
+        t.checked &&
+		!t.recurrence &&
+        t.status == "/" &&
+        ((t.due && moment(t.due.toString()).isSame(date)) ||
+          (t.scheduled && moment(t.scheduled.toString()).isSame(date)) ||
+          (t.start && moment(t.start.toString()).isSame(date)))
+    )
+    .sort((t) => t.due);
   recurrence = tasks
     .filter(
       (t) =>
@@ -371,7 +389,29 @@ function getTasks(date) {
       (t) =>
         !t.completed &&
         t.checked &&
-        t.status == "/" &&
+        (t.status == "I") &&
+        ((t.due && moment(t.due.toString()).isSame(date)) ||
+          (t.scheduled && moment(t.scheduled.toString()).isSame(date)) ||
+          (t.start && moment(t.start.toString()).isSame(date)))
+    )
+    .sort((t) => t.due);
+  toSend = tasks
+    .filter(
+      (t) =>
+        !t.completed &&
+        t.checked &&
+        (t.status == "b") &&
+        ((t.due && moment(t.due.toString()).isSame(date)) ||
+          (t.scheduled && moment(t.scheduled.toString()).isSame(date)) ||
+          (t.start && moment(t.start.toString()).isSame(date)))
+    )
+    .sort((t) => t.due);
+  waiting = tasks
+    .filter(
+      (t) =>
+        !t.completed &&
+        t.checked &&
+        (t.status == "<") &&
         ((t.due && moment(t.due.toString()).isSame(date)) ||
           (t.scheduled && moment(t.scheduled.toString()).isSame(date)) ||
           (t.start && moment(t.start.toString()).isSame(date)))
@@ -508,10 +548,13 @@ function setTaskContentContainer(currentDate) {
     showTasks(overdue, "overdue");
   }
   showTasks(due, "due");
+  showTasks(dueComplex, "dueComplex");
   showTasks(scheduled, "scheduled");
   showTasks(start, "start");
   showTasks(process, "process");
   showTasks(progress, "progress");
+  showTasks(toSend, "toSend");
+  showTasks(waiting, "waiting");
   showTasks(dailyNote, "dailyNote");
   showTasks(recurrence, "recurrence");
   showTasks(done, "done");
