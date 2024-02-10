@@ -396,6 +396,11 @@ body:not(.is-mobile) .tasksCalendar .task:hover {
   color: var(--icon-color-active);
   opacity: 1;
 }
+.tasksCalendar .cell[data-weekday="6"].today .cellName {
+  font-weight: bold;
+  color: var(--icon-color-active);
+  opacity: 1;
+}
 .tasksCalendar[view="month"] .cell.today {
   background: var(--background-modifier-active-hover) !important;
   border: 1px solid hsla(var(--interactive-accent-hsl), 0.25) !important;
@@ -407,6 +412,10 @@ body:not(.is-mobile) .tasksCalendar .task:hover {
 }
 .tasksCalendar .cell[data-weekday="0"] .cellName,
 .tasksCalendar .gridHead[data-weekday="0"] {
+  color: var(--icon-color-active);
+}
+.tasksCalendar .cell[data-weekday="6"] .cellName,
+.tasksCalendar .gridHead[data-weekday="6"] {
   color: var(--icon-color-active);
 }
 
