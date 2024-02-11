@@ -208,7 +208,7 @@ function getMeta(tasks) {
       tasks[i].recurrence = true;
       tasks[i].text = tasks[i].text.substring(0, taskText.indexOf("🔁"));
     }
-	var lowestMatch = taskText.includes("⏬️");
+    var lowestMatch = taskText.includes("⏬️");
     if (lowestMatch) {
       tasks[i].priority = "F";
     }
@@ -224,7 +224,7 @@ function getMeta(tasks) {
     if (highMatch) {
       tasks[i].priority = "B";
     }
-	var highestMatch = taskText.includes("🔺");
+    var highestMatch = taskText.includes("🔺");
     if (highestMatch) {
       tasks[i].priority = "A";
     }
