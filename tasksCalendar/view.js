@@ -193,6 +193,11 @@ function getMeta(tasks) {
       tasks[i].scheduled = scheduledMatch[1];
       tasks[i].text = tasks[i].text.replace(scheduledMatch[0], "");
     }
+    var addMatch = taskText.match(/\➕\W(\d{4}\-\d{2}\-\d{2})/);
+    if (addMatch) {
+      tasks[i].add = addMatch[1];
+      tasks[i].text = tasks[i].text.replace(addMatch[0], "");
+    }
     var completionMatch = taskText.match(/\✅\W(\d{4}\-\d{2}\-\d{2})/);
     if (completionMatch) {
       tasks[i].completion = completionMatch[1];
@@ -203,20 +208,28 @@ function getMeta(tasks) {
       tasks[i].recurrence = true;
       tasks[i].text = tasks[i].text.substring(0, taskText.indexOf("🔁"));
     }
+	var lowestMatch = taskText.includes("⏬️");
+    if (lowestMatch) {
+      tasks[i].priority = "F";
+    }
     var lowMatch = taskText.includes("🔽");
     if (lowMatch) {
-      tasks[i].priority = "D";
+      tasks[i].priority = "E";
     }
     var mediumMatch = taskText.includes("🔼");
     if (mediumMatch) {
-      tasks[i].priority = "B";
+      tasks[i].priority = "C";
     }
     var highMatch = taskText.includes("⏫");
     if (highMatch) {
+      tasks[i].priority = "B";
+    }
+	var highestMatch = taskText.includes("🔺");
+    if (highestMatch) {
       tasks[i].priority = "A";
     }
-    if (!lowMatch && !mediumMatch && !highMatch) {
-      tasks[i].priority = "C";
+    if (!highestMatch && !highMatch && !mediumMatch && !lowMatch && !lowestMatch) {
+      tasks[i].priority = "D";
     }
     if (globalTaskFilter) {
       tasks[i].text = tasks[i].text.replaceAll(globalTaskFilter, "");
