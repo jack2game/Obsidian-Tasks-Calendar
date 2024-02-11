@@ -83,6 +83,7 @@ var done,
   scheduled,
   process,
   progress,
+  toRead,
   toSend,
   waiting,
   cancelled,
@@ -150,6 +151,7 @@ var taskRecurrenceIcon = "🔁";
 var taskOverdueIcon = "⚠️";
 var taskProcessIcon = "⏺️";
 var taskProgressIcon = "💡";
+var taskToReadIcon = "ℹ️";
 var taskToSendIcon = "🔖";
 var taskWaitingIcon = "📆";
 var taskCancelledIcon = "❌";
@@ -395,6 +397,17 @@ function getTasks(date) {
           (t.start && moment(t.start.toString()).isSame(date)))
     )
     .sort((t) => t.due);
+  toRead = tasks
+    .filter(
+      (t) =>
+        !t.completed &&
+        t.checked &&
+        (t.status == "i") &&
+        ((t.due && moment(t.due.toString()).isSame(date)) ||
+          (t.scheduled && moment(t.scheduled.toString()).isSame(date)) ||
+          (t.start && moment(t.start.toString()).isSame(date)))
+    )
+    .sort((t) => t.due);
   toSend = tasks
     .filter(
       (t) =>
@@ -553,6 +566,7 @@ function setTaskContentContainer(currentDate) {
   showTasks(start, "start");
   showTasks(process, "process");
   showTasks(progress, "progress");
+  showTasks(toRead, "toRead");
   showTasks(toSend, "toSend");
   showTasks(waiting, "waiting");
   showTasks(dailyNote, "dailyNote");
