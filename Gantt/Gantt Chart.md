@@ -1,7 +1,6 @@
 ---
 showDone: true
-Created at: 2024-02-09T15:32
-Updated at: 2024-02-09T22:16
+Updated at: 2024-02-12T15:16
 ---
 ## Timeline
 
@@ -49,10 +48,12 @@ function textParser(taskText, noteCreationDate, parentEndDate) {
     addText = extractDate("➕");
     const doneText = extractDate("✅");
 
-    let h = taskText.indexOf("⏫");
+    let hh = taskText.indexOf("🔺");
+	let h = taskText.indexOf("⏫");
     let m = taskText.indexOf("🔼");
     let l = taskText.indexOf("🔽");
-    let PriorityText="";
+	let ll = taskText.indexOf("⏬");
+    let PriorityText="Normal";
     if(h>=0){
         PriorityText="High";
     }
@@ -61,6 +62,12 @@ function textParser(taskText, noteCreationDate, parentEndDate) {
     }
     if(l>=0){
         PriorityText="Low";
+    }
+	if(hh>=0){
+        PriorityText="Highest";
+    }
+	if(ll>=0){
+        PriorityText="Lowest";
     }
     
     const emojisIndex = emojis.map(emoji => taskText.indexOf(emoji)).filter(index => index >= 0);
@@ -116,7 +123,7 @@ function loopGantt (pageArray, showDone){
             if (theTask.name === "") continue; // Skip if task name is empty
             // Skip done tasks if showDone is false
             if (!showDone && theTask.done) continue;
-            let startDate = theTask.start || theTask.scheduled || theTask.add || parentEndDate[taskArray[j].parent] || noteCreationDate || today;
+            let startDate = theTask.start || theTask.scheduled || theTask.add;// || parentEndDate[taskArray[j].parent] || noteCreationDate || today;
             let endDate = theTask.done || theTask.due || theTask.scheduled;
             if (!endDate) {
                 if (startDate >= today) {  // If start date is in the future
@@ -130,17 +137,19 @@ function loopGantt (pageArray, showDone){
             parentEndDate[taskArray[j].line]=endDate;
             if (theTask.done){
                 taskQuery += theTask.name + `    :done, ` + startDate + `, ` + endDate + `\n\n`;
+            } else if (!startDate){
+                taskQuery += theTask.name + `   :milestone, ` + endDate + `, 0`+ `\n\n`;
             } else if (theTask.due){
                 if (theTask.due < today){
-                    taskQuery += theTask.name  + `    :crit, ` + startDate + `, ` + endDate + `\n\n`;
+                    taskQuery += theTask.name + `    :crit, ` + startDate + `, ` + endDate + `\n\n`;
                 } else {
-                    taskQuery += theTask.name  + `    :active, ` + startDate + `, ` + endDate + `\n\n`;
+                    taskQuery += theTask.name + `    :active, ` + startDate + `, ` + endDate + `\n\n`;
                 }
             } else if (theTask.scheduled){
                 if (startDate <= today){
                     taskQuery += theTask.name + `    :active, ` + startDate + `, ` + endDate + `\n\n`;
                 } else {
-                    taskQuery += theTask.name + `    :inactive, ` + startDate + `, ` + endDate + `\n\n`;
+                    taskQuery += theTask.name + `    :        ` + startDate + `, ` + endDate + `\n\n`;
                 }
             } else {
                 taskQuery += theTask.name  + `    :active, ` + startDate + `, ` + endDate + `\n\n`;
@@ -188,8 +197,3 @@ const Mermaid = `gantt
 ```
 
 ## Task
-
-- [ ] Test 1 ⏬ ➕ 2024-02-09 🛫 2024-02-05 📅 2024-02-08
-- [x] Test 2 🔽 ➕ 2024-02-09 📅 2024-02-19 ✅ 2024-02-14
-- [x] Test 3 🔺 ➕ 2024-02-09 ⏳ 2024-02-10 📅 2024-02-27 ✅ 2024-02-14
-- [I] Test 4 ⏫ ➕ 2024-02-09 ⏳ 2024-02-24 📅 2024-02-28
